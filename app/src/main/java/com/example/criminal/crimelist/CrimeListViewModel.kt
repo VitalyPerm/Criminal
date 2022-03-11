@@ -1,4 +1,4 @@
-package com.example.criminal
+package com.example.criminal.crimelist
 
 import androidx.lifecycle.ViewModel
 import com.example.criminal.db.CrimeRepository
