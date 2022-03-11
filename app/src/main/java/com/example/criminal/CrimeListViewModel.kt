@@ -1,17 +1,11 @@
 package com.example.criminal
 
 import androidx.lifecycle.ViewModel
+import com.example.criminal.db.CrimeRepository
 
 class CrimeListViewModel : ViewModel() {
 
-    val crimes = mutableListOf<Crime>()
+    private val crimeRepository = CrimeRepository.getRepository()
+    val crimesLiveData = crimeRepository.getCrimes()
 
-    init {
-        for (i in 0 until 100) {
-            val crime = Crime()
-            crime.title = "Crime #$i"
-            crime.isSolved = i % 2 == 0
-            crimes += crime
-        }
-    }
 }

@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.example.criminal.databinding.FragmentCrimeListBinding
 import com.example.criminal.databinding.ListItemCrimeBinding
+import com.example.criminal.db.Crime
 
 class CrimeListFragment : Fragment(R.layout.fragment_crime_list) {
 
@@ -21,10 +22,17 @@ class CrimeListFragment : Fragment(R.layout.fragment_crime_list) {
         ViewModelProvider(this).get(CrimeListViewModel::class.java)
     }
 
+    private var adapter: CrimeAdapter? = CrimeAdapter()
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.crimeRecyclerView.layoutManager = LinearLayoutManager(context)
-        binding.crimeRecyclerView.adapter = CrimeAdapter(crimeListViewModel.crimes)
+        binding.crimeRecyclerView.adapter = adapter
+        crimeListViewModel.crimesLiveData.observe(viewLifecycleOwner) {
+            it?.let {
+                adapter?.updateUi(it)
+            }
+        }
     }
 
 
@@ -57,8 +65,13 @@ class CrimeListFragment : Fragment(R.layout.fragment_crime_list) {
         }
     }
 
-    private inner class CrimeAdapter(var crimes: List<Crime>) :
-        RecyclerView.Adapter<CrimeHolder>() {
+    private inner class CrimeAdapter : RecyclerView.Adapter<CrimeHolder>() {
+        private var crimes: List<Crime> = emptyList()
+
+        fun updateUi(crimes: List<Crime>) {
+            this.crimes = crimes
+            notifyDataSetChanged()
+        }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CrimeHolder {
             return CrimeHolder(layoutInflater.inflate(R.layout.list_item_crime, parent, false))

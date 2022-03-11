@@ -1,8 +1,6 @@
 package com.example.criminal
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,6 +9,7 @@ import android.widget.CheckBox
 import android.widget.EditText
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
+import com.example.criminal.db.Crime
 
 class CrimeFragment : Fragment() {
 
