@@ -4,6 +4,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.example.criminal.R
@@ -12,15 +14,7 @@ import com.example.criminal.db.Crime
 import java.util.*
 
 class CrimeListAdapter(private val onClick: (UUID) -> Unit) :
-    RecyclerView.Adapter<CrimeListAdapter.CrimeListViewHolder>() {
-
-    private var crimes: List<Crime> = emptyList()
-
-    fun updateUi(crimes: List<Crime>) {
-        this.crimes = crimes
-        notifyDataSetChanged()
-    }
-
+    ListAdapter<Crime, CrimeListAdapter.CrimeListViewHolder>(CrimeListDiffUtil()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CrimeListViewHolder =
         CrimeListViewHolder(
@@ -28,18 +22,26 @@ class CrimeListAdapter(private val onClick: (UUID) -> Unit) :
         )
 
     override fun onBindViewHolder(holder: CrimeListViewHolder, position: Int) {
+        val item = getItem(position)
         holder.binding.run {
-            crimeTitle.text = crimes[position].title
-            crimeDate.text = crimes[position].date.toString()
-            crimeSolved.isVisible = crimes[position].isSolved
-            cl.setOnClickListener { onClick.invoke(crimes[position].id) }
+            crimeTitle.text = item.title
+            crimeDate.text = item.date.toString()
+            crimeSolved.isVisible = item.isSolved
+            cl.setOnClickListener { onClick.invoke(item.id) }
         }
     }
-
-    override fun getItemCount(): Int = crimes.size
-
 
     inner class CrimeListViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val binding by viewBinding(ListItemCrimeBinding::bind)
     }
+}
+
+class CrimeListDiffUtil : DiffUtil.ItemCallback<Crime>() {
+
+    override fun areItemsTheSame(oldItem: Crime, newItem: Crime) =
+        oldItem.id == newItem.id
+
+    override fun areContentsTheSame(oldItem: Crime, newItem: Crime) =
+        oldItem == newItem
+
 }

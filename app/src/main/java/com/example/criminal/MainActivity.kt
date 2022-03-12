@@ -2,32 +2,15 @@ package com.example.criminal
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.example.criminal.crime.CrimeFragment
-import com.example.criminal.crimelist.CrimeListFragment
-import java.util.*
+import androidx.navigation.NavController
+import androidx.navigation.Navigation
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
 
-class MainActivity : AppCompatActivity(), CrimeListFragment.Callbacks {
+class MainActivity : AppCompatActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        val currentFragment =
-            supportFragmentManager.findFragmentById(R.id.fragment_container)
-
-        if (currentFragment == null) {
-            supportFragmentManager
-                .beginTransaction()
-                .add(R.id.fragment_container, CrimeListFragment.newInstance())
-                .commit()
-        }
-
-    }
-
-    override fun onCrimeSelected(crimeId: UUID) {
-        supportFragmentManager
-            .beginTransaction()
-            .replace(R.id.fragment_container, CrimeFragment.newInstance(crimeId))
-            .addToBackStack(null)
-            .commit()
     }
 }

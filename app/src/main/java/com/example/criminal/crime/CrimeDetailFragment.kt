@@ -11,7 +11,6 @@ import com.example.criminal.databinding.FragmentCrimeDetailBinding
 import com.example.criminal.db.Crime
 import java.util.*
 
-private const val ARG_CRIME_ID = "crime_id"
 
 class CrimeFragment : Fragment(R.layout.fragment_crime_detail) {
 
@@ -25,6 +24,7 @@ class CrimeFragment : Fragment(R.layout.fragment_crime_detail) {
 
 
     companion object {
+        const val ARG_CRIME_ID = "crime_id"
         fun newInstance(crimeId: UUID) = CrimeFragment().apply {
             arguments = Bundle().apply {
                 putSerializable(ARG_CRIME_ID, crimeId)
@@ -46,15 +46,17 @@ class CrimeFragment : Fragment(R.layout.fragment_crime_detail) {
                     crimeSolved.isChecked = crime.isSolved
 
                     crimeTitle.doOnTextChanged { text, start, before, count ->
-                        crime.title = text.toString()
-                        editableCrime?.let { editableCrime -> editableCrime.title = text.toString() }
+                        editableCrime?.let { editableCrime ->
+                            editableCrime.title = text.toString()
+                        }
                     }
 
                     crimeSolved.apply {
                         setOnCheckedChangeListener { _, isChecked ->
-                            crime.isSolved = isChecked
                             jumpDrawablesToCurrentState()
-                            editableCrime?.let { editableCrime -> editableCrime.isSolved = isChecked }
+                            editableCrime?.let { editableCrime ->
+                                editableCrime.isSolved = isChecked
+                            }
                         }
                     }
                 }
