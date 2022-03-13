@@ -43,5 +43,4 @@ class CrimeListDiffUtil : DiffUtil.ItemCallback<Crime>() {
 
     override fun areContentsTheSame(oldItem: Crime, newItem: Crime) =
         oldItem == newItem
-
 }

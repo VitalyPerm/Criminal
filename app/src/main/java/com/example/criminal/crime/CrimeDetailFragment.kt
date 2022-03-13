@@ -12,7 +12,10 @@ import com.example.criminal.db.Crime
 import java.util.*
 
 
-class CrimeFragment : Fragment(R.layout.fragment_crime_detail) {
+private const val DIALOG_DATE = "DialogDate"
+private const val REQUEST_DATE = 0
+
+class CrimeDetailFragment : Fragment(R.layout.fragment_crime_detail) {
 
     private val crimeDetailViewModel: CrimeDetailViewModel by lazy {
         ViewModelProvider(this)[CrimeDetailViewModel::class.java]
@@ -25,16 +28,13 @@ class CrimeFragment : Fragment(R.layout.fragment_crime_detail) {
 
     companion object {
         const val ARG_CRIME_ID = "crime_id"
-        fun newInstance(crimeId: UUID) = CrimeFragment().apply {
-            arguments = Bundle().apply {
-                putSerializable(ARG_CRIME_ID, crimeId)
-            }
-        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         val crimeId: UUID = arguments?.getSerializable(ARG_CRIME_ID) as UUID
+
         crimeDetailViewModel.getCrime(crimeId).observe(viewLifecycleOwner) {
             it?.let { crime ->
                 editableCrime = crime
@@ -51,6 +51,14 @@ class CrimeFragment : Fragment(R.layout.fragment_crime_detail) {
                         }
                     }
 
+                    crimeDate.setOnClickListener {
+                        DatePickerFragment.newInstance(crime.date) { date ->
+                            crimeDate.text = date.toString()
+                        }.apply {
+                            show(this@CrimeDetailFragment.parentFragmentManager, DIALOG_DATE)
+                        }
+                    }
+
                     crimeSolved.apply {
                         setOnCheckedChangeListener { _, isChecked ->
                             jumpDrawablesToCurrentState()
@@ -63,6 +71,7 @@ class CrimeFragment : Fragment(R.layout.fragment_crime_detail) {
             }
         }
     }
+
 
     override fun onStop() {
         super.onStop()

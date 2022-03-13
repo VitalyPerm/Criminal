@@ -8,7 +8,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.example.criminal.R
-import com.example.criminal.crime.CrimeFragment
+import com.example.criminal.crime.CrimeDetailFragment
 import com.example.criminal.databinding.FragmentCrimeListBinding
 
 class CrimeListFragment : Fragment(R.layout.fragment_crime_list) {
@@ -24,7 +24,7 @@ class CrimeListFragment : Fragment(R.layout.fragment_crime_list) {
         findNavController().navigate(
             R.id.action_crimeListFragment_to_crimeFragment,
             Bundle().apply {
-                putSerializable(CrimeFragment.ARG_CRIME_ID, it)
+                putSerializable(CrimeDetailFragment.ARG_CRIME_ID, it)
             })
     }
 

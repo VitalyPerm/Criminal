@@ -14,7 +14,7 @@
     </fragment>
     <fragment
         android:id="@+id/crimeFragment"
-        android:name="com.example.criminal.crime.CrimeFragment"
+        android:name="com.example.criminal.crime.CrimeDetailFragment"
         android:label="CrimeFragment" >
         <action
             android:id="@+id/action_crimeFragment_to_crimeListFragment"
