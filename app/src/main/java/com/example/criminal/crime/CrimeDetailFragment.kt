@@ -13,7 +13,6 @@ import java.util.*
 
 
 private const val DIALOG_DATE = "DialogDate"
-private const val REQUEST_DATE = 0
 
 class CrimeDetailFragment : Fragment(R.layout.fragment_crime_detail) {
 
@@ -41,9 +40,19 @@ class CrimeDetailFragment : Fragment(R.layout.fragment_crime_detail) {
                 binding.run {
                     crimeTitle.setText(crime.title)
 
-                    crimeDate.text = crime.date.toString()
+                    crimeDate.text = getDate(crime.date)
 
                     crimeSolved.isChecked = crime.isSolved
+
+                    crimeTime.text = "00:00"
+
+                    crimeTime.setOnClickListener {
+                        TimePickerFragment.newInstance { time ->
+                            crimeTime.text = time
+                        }.apply {
+                            show(this@CrimeDetailFragment.parentFragmentManager, "")
+                        }
+                    }
 
                     crimeTitle.doOnTextChanged { text, start, before, count ->
                         editableCrime?.let { editableCrime ->
@@ -53,7 +62,7 @@ class CrimeDetailFragment : Fragment(R.layout.fragment_crime_detail) {
 
                     crimeDate.setOnClickListener {
                         DatePickerFragment.newInstance(crime.date) { date ->
-                            crimeDate.text = date.toString()
+                            crimeDate.text = getDate(date)
                         }.apply {
                             show(this@CrimeDetailFragment.parentFragmentManager, DIALOG_DATE)
                         }
@@ -70,6 +79,16 @@ class CrimeDetailFragment : Fragment(R.layout.fragment_crime_detail) {
                 }
             }
         }
+    }
+
+    private fun getDate(date: Date): String {
+        val calendar = Calendar.getInstance()
+        calendar.time = date
+        return "${calendar.get(Calendar.DAY_OF_MONTH)} / ${calendar.get(Calendar.MONTH)} / ${
+            calendar.get(
+                Calendar.YEAR
+            )
+        }"
     }
 
 
