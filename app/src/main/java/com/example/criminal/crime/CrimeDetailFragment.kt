@@ -44,11 +44,11 @@ class CrimeDetailFragment : Fragment(R.layout.fragment_crime_detail) {
 
                     crimeSolved.isChecked = crime.isSolved
 
-                    crimeTime.text = "00:00"
+                    crimeTime.text = "Time: "
 
                     crimeTime.setOnClickListener {
                         TimePickerFragment.newInstance { time ->
-                            crimeTime.text = time
+                            crimeTime.text = "Time: $time"
                         }.apply {
                             show(this@CrimeDetailFragment.parentFragmentManager, "")
                         }
@@ -81,19 +81,19 @@ class CrimeDetailFragment : Fragment(R.layout.fragment_crime_detail) {
         }
     }
 
-    private fun getDate(date: Date): String {
-        val calendar = Calendar.getInstance()
-        calendar.time = date
-        return "${calendar.get(Calendar.DAY_OF_MONTH)} / ${calendar.get(Calendar.MONTH)} / ${
-            calendar.get(
-                Calendar.YEAR
-            )
-        }"
-    }
-
 
     override fun onStop() {
         super.onStop()
         editableCrime?.let { crimeDetailViewModel.saveCrime(it) }
     }
+}
+
+fun getDate(date: Date): String {
+    val calendar = Calendar.getInstance()
+    calendar.time = date
+    return "Date: ${calendar.get(Calendar.DAY_OF_MONTH)} / ${calendar.get(Calendar.MONTH)} / ${
+        calendar.get(
+            Calendar.YEAR
+        )
+    }"
 }

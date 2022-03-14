@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.example.criminal.R
+import com.example.criminal.crime.getDate
 import com.example.criminal.databinding.ListItemCrimeBinding
 import com.example.criminal.db.Crime
 import java.util.*
@@ -25,7 +26,7 @@ class CrimeListAdapter(private val onClick: (UUID) -> Unit) :
         val item = getItem(position)
         holder.binding.run {
             crimeTitle.text = item.title
-            crimeDate.text = item.date.toString()
+            crimeDate.text = getDate(item.date)
             crimeSolved.isVisible = item.isSolved
             cl.setOnClickListener { onClick.invoke(item.id) }
         }
