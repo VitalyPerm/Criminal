@@ -14,7 +14,7 @@ class DatePickerFragment : DialogFragment() {
     private var onDateSelected: ((Date) -> Unit)? = null
 
     companion object {
-        fun newInstance(date: Date, onDateSelected: (Date) -> Unit): DatePickerFragment {
+        fun newInstance(date: Date?, onDateSelected: (Date) -> Unit): DatePickerFragment {
             return DatePickerFragment().apply {
                 this.onDateSelected = onDateSelected
                 arguments = Bundle().apply {
