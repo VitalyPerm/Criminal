@@ -3,6 +3,8 @@ package com.example.criminal.db
 import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.room.Room
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.lang.IllegalStateException
 import java.util.*
 import java.util.concurrent.Executors
@@ -15,19 +17,27 @@ class CrimeRepository private constructor(context: Context) {
         context.applicationContext,
         CrimeDataBase::class.java,
         DATABASE_NAME
-    ).build()
+    )
+        .addMigrations(CrimeDataBase.migration_1_2)
+        .build()
+
 
     private val crimeDao = database.crimeDao()
 
-    private val executor = Executors.newSingleThreadExecutor()
-
     fun getCrimes(): LiveData<List<Crime>> = crimeDao.getCrimes()
 
-    fun getCrime(id: UUID): LiveData<Crime?> = crimeDao.getCrime(id)
+    suspend fun getCrime(id: UUID): Crime = withContext(Dispatchers.IO) {
+        return@withContext crimeDao.getCrime(id) ?: Crime()
+    }
 
-    fun updateCrime(crime: Crime) = executor.execute { crimeDao.updateCrime(crime) }
+    suspend fun updateCrime(crime: Crime) = withContext(Dispatchers.IO) {
+        crimeDao.updateCrime(crime)
+    }
 
-    fun addCrime(crime: Crime) = executor.execute { crimeDao.addCrime(crime) }
+
+    suspend fun addCrime(crime: Crime) = withContext(Dispatchers.IO) {
+        crimeDao.addCrime(crime)
+    }
 
 
     companion object {

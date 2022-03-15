@@ -26,7 +26,7 @@ class CrimeListAdapter(private val onClick: (UUID) -> Unit) :
         val item = getItem(position)
         holder.binding.run {
             crimeTitle.text = item.title
-            crimeDate.text = getDate(item.date)
+            crimeDate.text = "${getDate(item.date)}       time: ${item.time}"
             crimeSolved.isVisible = item.isSolved
             cl.setOnClickListener { onClick.invoke(item.id) }
         }

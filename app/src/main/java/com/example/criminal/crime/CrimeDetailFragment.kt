@@ -16,7 +16,7 @@ private const val DIALOG_DATE = "DialogDate"
 
 class CrimeDetailFragment : Fragment(R.layout.fragment_crime_detail) {
 
-    private val crimeDetailViewModel: CrimeDetailViewModel by lazy {
+    private val vm: CrimeDetailViewModel by lazy {
         ViewModelProvider(this)[CrimeDetailViewModel::class.java]
     }
 
@@ -34,7 +34,9 @@ class CrimeDetailFragment : Fragment(R.layout.fragment_crime_detail) {
 
         val crimeId: UUID = arguments?.getSerializable(ARG_CRIME_ID) as UUID
 
-        crimeDetailViewModel.getCrime(crimeId).observe(viewLifecycleOwner) {
+        vm.getCrime(crimeId)
+
+        vm.crime.observe(viewLifecycleOwner) {
             it?.let { crime ->
                 editableCrime = crime
                 binding.run {
@@ -49,12 +51,13 @@ class CrimeDetailFragment : Fragment(R.layout.fragment_crime_detail) {
                     crimeTime.setOnClickListener {
                         TimePickerFragment.newInstance { time ->
                             crimeTime.text = "Time: $time"
+                            editableCrime?.time = time
                         }.apply {
                             show(this@CrimeDetailFragment.parentFragmentManager, "")
                         }
                     }
 
-                    crimeTitle.doOnTextChanged { text, start, before, count ->
+                    crimeTitle.doOnTextChanged { text, _, _, _ ->
                         editableCrime?.let { editableCrime ->
                             editableCrime.title = text.toString()
                         }
@@ -84,7 +87,7 @@ class CrimeDetailFragment : Fragment(R.layout.fragment_crime_detail) {
 
     override fun onStop() {
         super.onStop()
-        editableCrime?.let { crimeDetailViewModel.saveCrime(it) }
+        editableCrime?.let { vm.saveCrime(it) }
     }
 }
 
