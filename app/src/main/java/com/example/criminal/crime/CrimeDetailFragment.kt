@@ -1,6 +1,11 @@
 package com.example.criminal.crime
 
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.provider.ContactsContract
+import android.text.format.DateFormat
 import android.view.View
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
@@ -13,6 +18,8 @@ import java.util.*
 
 
 private const val DIALOG_DATE = "DialogDate"
+private const val REQUEST_CONTACT = 1
+private const val DATE_FORMAT = "EEE, MMM, dd"
 
 class CrimeDetailFragment : Fragment(R.layout.fragment_crime_detail) {
 
@@ -22,7 +29,7 @@ class CrimeDetailFragment : Fragment(R.layout.fragment_crime_detail) {
 
     private val binding by viewBinding(FragmentCrimeDetailBinding::bind)
 
-    private var editableCrime: Crime? = null
+    private lateinit var editableCrime: Crime
 
 
     companion object {
@@ -48,46 +55,121 @@ class CrimeDetailFragment : Fragment(R.layout.fragment_crime_detail) {
 
                     crimeTime.text = "Time: "
 
-                    crimeTime.setOnClickListener {
-                        TimePickerFragment.newInstance { time ->
-                            crimeTime.text = "Time: $time"
-                            editableCrime?.time = time
-                        }.apply {
-                            show(this@CrimeDetailFragment.parentFragmentManager, "")
-                        }
+                    if (crime.suspect.isNotEmpty()) {
+                        crimeSuspect.text = crime.suspect
                     }
 
                     crimeTitle.doOnTextChanged { text, _, _, _ ->
-                        editableCrime?.let { editableCrime ->
-                            editableCrime.title = text.toString()
-                        }
+                        editableCrime.title = text.toString()
                     }
 
-                    crimeDate.setOnClickListener {
-                        DatePickerFragment.newInstance(crime.date) { date ->
-                            crimeDate.text = getDate(date)
-                        }.apply {
-                            show(this@CrimeDetailFragment.parentFragmentManager, DIALOG_DATE)
-                        }
-                    }
 
-                    crimeSolved.apply {
-                        setOnCheckedChangeListener { _, isChecked ->
-                            jumpDrawablesToCurrentState()
-                            editableCrime?.let { editableCrime ->
-                                editableCrime.isSolved = isChecked
-                            }
-                        }
+                }
+            }
+        }
+        setClickListeners()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        when {
+            resultCode != Activity.RESULT_OK -> return
+            requestCode == REQUEST_CONTACT && data != null -> {
+                val contactUri: Uri? = data.data
+                val queryFields = arrayOf(ContactsContract.Contacts.DISPLAY_NAME)
+                val cursor = contactUri?.let {
+                    requireActivity().contentResolver
+                        .query(it, queryFields, null, null, null)
+                }
+                cursor?.use {
+                    if (it.count == 0) {
+                        return
                     }
+                    it.moveToFirst()
+                    val suspect = it.getString(0)
+                    editableCrime.suspect = suspect
+                    vm.saveCrime(editableCrime)
+                    binding.crimeSuspect.text = suspect
                 }
             }
         }
     }
 
+    private fun setClickListeners() {
+        binding.run {
+
+            crimeReport.setOnClickListener {
+                Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, getCrimeReport(editableCrime))
+                    putExtra(
+                        Intent.EXTRA_SUBJECT,
+                        getString(R.string.crime_report_subject)
+                    )
+                }.also { intent ->
+                    val chooserIntent =
+                        Intent.createChooser(intent, getString(R.string.send_report))
+                    startActivity(chooserIntent)
+                }
+            }
+
+            crimeSuspect.apply {
+                val pickContactIntent =
+                    Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI)
+                setOnClickListener {
+                    startActivityForResult(pickContactIntent, REQUEST_CONTACT)
+                }
+            }
+
+            crimeSolved.apply {
+                setOnCheckedChangeListener { _, isChecked ->
+                    jumpDrawablesToCurrentState()
+                    editableCrime.isSolved = isChecked
+                }
+            }
+
+            crimeTime.setOnClickListener {
+                TimePickerFragment.newInstance { time ->
+                    crimeTime.text = "Time: $time"
+                    editableCrime.time = time
+                }.apply {
+                    show(this@CrimeDetailFragment.parentFragmentManager, "")
+                }
+            }
+
+            crimeDate.setOnClickListener {
+                DatePickerFragment.newInstance(editableCrime.date) { date ->
+                    crimeDate.text = getDate(date)
+                    editableCrime.date = date
+                }.apply {
+                    show(this@CrimeDetailFragment.parentFragmentManager, DIALOG_DATE)
+                }
+            }
+
+        }
+    }
+
+    private fun getCrimeReport(crime: Crime): String {
+        val solvedString = if (crime.isSolved) {
+            getString(R.string.crime_report_solved)
+        } else {
+            getString(R.string.crime_report_unsolved)
+        }
+        val dateString = DateFormat.format(DATE_FORMAT, crime.date).toString()
+        val suspect = if (crime.suspect.isBlank()) {
+            getString(R.string.crime_report_no_suspect)
+        } else {
+            getString(R.string.crime_report_suspect, crime.suspect)
+        }
+        return getString(
+            R.string.crime_report,
+            crime.title, dateString, solvedString, suspect
+        )
+    }
+
 
     override fun onStop() {
         super.onStop()
-        editableCrime?.let { vm.saveCrime(it) }
+        vm.saveCrime(editableCrime)
     }
 }
 
