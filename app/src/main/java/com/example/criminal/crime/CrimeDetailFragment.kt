@@ -2,11 +2,13 @@ package com.example.criminal.crime
 
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.ContactsContract
 import android.text.format.DateFormat
 import android.view.View
+import androidx.core.app.ActivityCompat
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -19,6 +21,7 @@ import java.util.*
 
 private const val DIALOG_DATE = "DialogDate"
 private const val REQUEST_CONTACT = 1
+private const val REQUEST_PHONE = 2
 private const val DATE_FORMAT = "EEE, MMM, dd"
 
 class CrimeDetailFragment : Fragment(R.layout.fragment_crime_detail) {
@@ -53,7 +56,8 @@ class CrimeDetailFragment : Fragment(R.layout.fragment_crime_detail) {
 
                     crimeSolved.isChecked = crime.isSolved
 
-                    crimeTime.text = "Time: "
+                    crimeTime.text = if (crime.time.isEmpty()) "Click to pick time"
+                    else resources.getString(R.string.time, crime.time)
 
                     if (crime.suspect.isNotEmpty()) {
                         crimeSuspect.text = crime.suspect
@@ -63,6 +67,8 @@ class CrimeDetailFragment : Fragment(R.layout.fragment_crime_detail) {
                         editableCrime.title = text.toString()
                     }
 
+                    callSuspect.text = crime.phone.ifEmpty { "Номер не найден" }
+
 
                 }
             }
@@ -70,28 +76,68 @@ class CrimeDetailFragment : Fragment(R.layout.fragment_crime_detail) {
         setClickListeners()
     }
 
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        if (requestCode == REQUEST_CONTACT && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            pickContact()
+        }
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when {
             resultCode != Activity.RESULT_OK -> return
             requestCode == REQUEST_CONTACT && data != null -> {
-                val contactUri: Uri? = data.data
-                val queryFields = arrayOf(ContactsContract.Contacts.DISPLAY_NAME)
-                val cursor = contactUri?.let {
-                    requireActivity().contentResolver
-                        .query(it, queryFields, null, null, null)
+                val getName = data.data?.let {
+                    requireActivity().contentResolver.query(it, null, null, null, null)
                 }
-                cursor?.use {
-                    if (it.count == 0) {
-                        return
+                getName?.let {
+                    if (it.moveToFirst()) {
+                        val name =
+                            it.getString(it.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME))
+                        val id =
+                            it.getString(getName.getColumnIndexOrThrow(ContactsContract.Contacts._ID))
+                        val hasPhone =
+                            it.getString(getName.getColumnIndexOrThrow(ContactsContract.Contacts.HAS_PHONE_NUMBER))
+                                .toInt()
+                        binding.crimeSuspect.text = name
+                        editableCrime.suspect = name
+                        if (hasPhone == 1) {
+                            val getPhone = requireActivity().contentResolver.query(
+                                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                                null,
+                                ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = " + id,
+                                null,
+                                null
+                            )
+                            getPhone?.let { getPhoneCursor ->
+                                while (getPhoneCursor.moveToNext()) {
+                                    val number =
+                                        getPhoneCursor.getString(
+                                            getPhoneCursor.getColumnIndexOrThrow(
+                                                ContactsContract.CommonDataKinds.Phone.NUMBER
+                                            )
+                                        )
+                                    binding.callSuspect.text = number
+                                    editableCrime.phone = number
+                                }
+                            }
+                            getPhone?.close()
+                        }
                     }
-                    it.moveToFirst()
-                    val suspect = it.getString(0)
-                    editableCrime.suspect = suspect
-                    vm.saveCrime(editableCrime)
-                    binding.crimeSuspect.text = suspect
                 }
+                getName?.close()
             }
         }
+    }
+
+    private fun pickContact() {
+        startActivityForResult(
+            Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI),
+            REQUEST_CONTACT
+        )
     }
 
     private fun setClickListeners() {
@@ -112,11 +158,30 @@ class CrimeDetailFragment : Fragment(R.layout.fragment_crime_detail) {
                 }
             }
 
+            callSuspect.setOnClickListener {
+                editableCrime.phone.let {
+                    if (it.isNotEmpty())
+                        startActivity(Intent(Intent.ACTION_DIAL).apply {
+                            data = Uri.parse("tel: ${editableCrime.phone}")
+                        })
+                }
+            }
+
             crimeSuspect.apply {
-                val pickContactIntent =
-                    Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI)
                 setOnClickListener {
-                    startActivityForResult(pickContactIntent, REQUEST_CONTACT)
+                    if (ActivityCompat.checkSelfPermission(
+                            requireContext(),
+                            android.Manifest.permission.READ_CONTACTS
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        ActivityCompat.requestPermissions(
+                            requireActivity(),
+                            arrayOf(android.Manifest.permission.READ_CONTACTS),
+                            REQUEST_PHONE
+                        )
+                    } else {
+                        pickContact()
+                    }
                 }
             }
 
@@ -129,7 +194,7 @@ class CrimeDetailFragment : Fragment(R.layout.fragment_crime_detail) {
 
             crimeTime.setOnClickListener {
                 TimePickerFragment.newInstance { time ->
-                    crimeTime.text = "Time: $time"
+                    crimeTime.text = resources.getString(R.string.time, time)
                     editableCrime.time = time
                 }.apply {
                     show(this@CrimeDetailFragment.parentFragmentManager, "")

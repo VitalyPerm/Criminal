@@ -33,10 +33,10 @@
     <TextView
         android:id="@+id/crime_time"
         style="?android:listSeparatorTextViewStyle"
-        android:gravity="center"
-        tools:text = "15 00 "
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        tools:text="15 00 " />
 
     <CheckBox
         android:id="@+id/crime_solved"
@@ -48,10 +48,18 @@
         android:id="@+id/crime_suspect"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/crime_suspect_text"/>
+        android:text="@string/crime_suspect_text" />
+
+    <Button
+        android:id="@+id/callSuspect"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:text="get phone" />
+
     <Button
         android:id="@+id/crime_report"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/crime_report_text"/>
+        android:text="@string/crime_report_text" />
+
 </LinearLayout>

@@ -18,7 +18,7 @@ class CrimeRepository private constructor(context: Context) {
         CrimeDataBase::class.java,
         DATABASE_NAME
     )
-        .addMigrations(CrimeDataBase.migration_1_2)
+        .addMigrations(CrimeDataBase.migration_1_2, CrimeDataBase.migration_2_3)
         .build()
 
 
